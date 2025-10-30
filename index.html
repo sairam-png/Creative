@@ -1,135 +1,542 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>💖 Our Special Countdown 💖</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: "Poppins", sans-serif;
-      background-size: cover;
-      background-position: center;
-      color: white;
-      text-shadow: 2px 2px 6px rgba(0,0,0,0.4);
-      flex-direction: column;
-      transition: background-image 1s ease-in-out;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Personalized Countdown Timer</title>
+<style>
+  :root{
+    --bg1: #0f2027;
+    --bg2: #203a43;
+    --accent: #ffd166;
+    --muted: #cbd5e1;
+    --glass: rgba(255,255,255,0.06);
+    --glass-2: rgba(255,255,255,0.04);
+    --radius: 14px;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
 
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-    }
+  html,body{height:100%;margin:0;}
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(135deg,var(--bg1),var(--bg2));
+    min-height:100vh;
+    color: #f8fafc;
+    -webkit-font-smoothing:antialiased;
+  }
 
-    #countdown {
-      font-size: 2rem;
-      letter-spacing: 2px;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 20px 30px;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
+  /* background container holds gradient or slides */
+  .bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow:hidden;
+  }
+  .bg .slide {
+    position:absolute;
+    inset:0;
+    background-size: cover;
+    background-position:center;
+    opacity:0;
+    transform: scale(1.05);
+    transition: opacity 1s ease, transform 1s ease;
+    will-change: opacity, transform;
+  }
+  .bg .slide.visible{opacity:1; transform: scale(1);}
+  .bg::after{
+    content:"";
+    position:absolute; inset:0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.35));
+    pointer-events:none;
+  }
 
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      pointer-events: none;
-    }
-  </style>
+  .container{
+    position:relative;
+    z-index:3;
+    width: min(980px, 94vw);
+    display:grid;
+    grid-template-columns: 1fr 360px;
+    gap: 18px;
+    padding: 26px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+    backdrop-filter: blur(6px) saturate(1.05);
+  }
+
+  /* left: display */
+  .display {
+    padding: 22px;
+    border-radius: 12px;
+    background: linear-gradient(180deg,var(--glass),var(--glass-2));
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:14px;
+    min-height: 300px;
+  }
+
+  .title-row {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+  }
+
+  .event-label {
+    font-size: clamp(20px, 3vw, 26px);
+    font-weight:600;
+    letter-spacing: -0.3px;
+  }
+  .countdown {
+    display:flex;
+    gap:12px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .time-card{
+    min-width: 90px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    text-align:center;
+    box-shadow: inset 0 -6px 18px rgba(0,0,0,0.25);
+  }
+  .time-num{
+    font-size: clamp(26px, 4vw, 40px);
+    font-weight:700;
+    line-height:1;
+  }
+  .time-label{
+    font-size: 12px;
+    color:var(--muted);
+    margin-top:6px;
+  }
+
+  .controls {
+    padding: 18px;
+    border-radius:12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+  input[type="datetime-local"], input[type="text"]{
+    width:100%;
+    padding:10px 12px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+    color: #fff;
+    outline:none;
+    box-sizing:border-box;
+  }
+  .row {display:flex;gap:8px}
+  .btn {
+    padding:10px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:600;
+    background: linear-gradient(90deg,var(--accent), #ffa94d); color:#012; box-shadow: 0 8px 18px rgba(255,209,122,0.14);
+  }
+  .btn.secondary {
+    background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04);
+  }
+  .small {
+    font-size:13px;padding:8px 10px;border-radius:10px;
+  }
+
+  .hint {font-size:12px;color:var(--muted);}
+
+  /* confetti canvas sits on top */
+  #confetti {
+    position: fixed;
+    z-index: 6;
+    pointer-events: none;
+    inset:0;
+  }
+
+  /* responsive */
+  @media (max-width:880px){
+    .container{grid-template-columns:1fr; padding:18px;}
+    .controls{order:2}
+  }
+
+  footer.meta{font-size:12px;color:var(--muted);margin-top:8px}
+</style>
 </head>
 <body>
-  <h1>💞 Countdown to Our Special Day 💞</h1>
-  <div id="countdown">Loading...</div>
+  <div class="bg" id="bg">
+    <!-- default slides (you can replace or upload images) -->
+    <div class="slide visible" style="background-image: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)), url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%22700%22><rect fill=%22%230b2a2f%22 width=%22100%25%22 height=%22100%25%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2230%22 fill=%22%23ffffff%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>Gradient background</text></svg>');"></div>
+  </div>
+
   <canvas id="confetti"></canvas>
 
-  <script>
-    // 🧠 CONFIG (your "backend" section)
-    const config = {
-      backgroundImage: "https://github.com/sairam-png/Creative/blob/main/IMG_9167.JPG",
-      countdownDate: "2025-12-03T00:00:00", // 💖 Set your target date here (YYYY-MM-DDTHH:MM:SS)
-    };
+  <main class="container" role="main" aria-labelledby="main-heading">
+    <section class="display" aria-live="polite">
+      <div class="title-row">
+        <div>
+          <div class="event-label" id="eventLabel">Our Special Day</div>
+          <div class="hint" id="targetDateText">No date set</div>
+        </div>
+        <div>
+          <button class="btn small" id="pauseBtn" aria-pressed="false">Pause</button>
+        </div>
+      </div>
 
-    // 🎨 Apply background
-    document.body.style.backgroundImage = `url('${config.backgroundImage}')`;
+      <div class="countdown" id="countdown">
+        <div class="time-card"><div class="time-num" id="days">--</div><div class="time-label">Days</div></div>
+        <div class="time-card"><div class="time-num" id="hours">--</div><div class="time-label">Hours</div></div>
+        <div class="time-card"><div class="time-num" id="minutes">--</div><div class="time-label">Minutes</div></div>
+        <div class="time-card"><div class="time-num" id="seconds">--</div><div class="time-label">Seconds</div></div>
+      </div>
 
-    // 🕒 Countdown logic
-    function startCountdown(targetDate) {
-      const target = new Date(targetDate).getTime();
-      const countdownEl = document.getElementById("countdown");
+      <div class="meta" style="margin-top:10px">
+        <div class="hint">Tip: set the target date, give it a label, then optionally upload photos for a slideshow background.</div>
+      </div>
+    </section>
 
-      const interval = setInterval(() => {
-        const now = new Date().getTime();
-        const distance = target - now;
+    <aside class="controls" aria-label="Settings">
+      <div>
+        <label for="labelInput">Event label</label>
+        <input id="labelInput" type="text" placeholder="e.g., Our Anniversary" value="Our Anniversary">
+      </div>
 
-        if (distance < 0) {
-          clearInterval(interval);
-          countdownEl.innerHTML = "🎉 It's the special day! 💖";
-          startConfetti();
-          return;
-        }
+      <div>
+        <label for="dateInput">Target date & time</label>
+        <input id="dateInput" type="datetime-local" aria-describedby="dateHelp">
+        <div id="dateHelp" class="hint">Pick the exact local date & time you want to count down to.</div>
+      </div>
 
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      <div>
+        <label>Background</label>
+        <div class="row">
+          <button class="btn small" id="useGradient">Use Gradient</button>
+          <label class="btn small secondary" id="uploadLabel" style="display:inline-block;cursor:pointer">
+            Upload Images
+            <input id="imageInput" type="file" accept="image/*" multiple style="display:none">
+          </label>
+        </div>
+        <div class="hint" style="margin-top:8px">Uploaded images become a rotating slideshow. Max 8 images suggested.</div>
+      </div>
 
-        countdownEl.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-      }, 1000);
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <button class="btn" id="setBtn">Set Countdown</button>
+        <button class="btn secondary" id="resetBtn">Reset</button>
+      </div>
+
+      <div style="margin-top:10px">
+        <label>When countdown ends</label>
+        <div class="row">
+          <select id="endAction" style="padding:10px;border-radius:10px;background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04)">
+            <option value="confetti">Show confetti + message</option>
+            <option value="alert">Simple alert</option>
+            <option value="none">Do nothing</option>
+          </select>
+          <button class="btn small" id="previewZero">Test Confetti</button>
+        </div>
+      </div>
+
+      <footer class="meta">Made with ❤ — open the file to customize fonts, colors, or slide timing.</footer>
+    </aside>
+  </main>
+
+<script>
+/* Utility helpers */
+function $(sel){return document.querySelector(sel)}
+function $all(sel){return Array.from(document.querySelectorAll(sel))}
+
+/* DOM */
+const daysEl = $('#days'), hoursEl = $('#hours'), minutesEl = $('#minutes'), secondsEl = $('#seconds');
+const labelInput = $('#labelInput'), dateInput = $('#dateInput'), setBtn = $('#setBtn'), resetBtn = $('#resetBtn');
+const targetDateText = $('#targetDateText'), eventLabel = $('#eventLabel'), pauseBtn = $('#pauseBtn');
+const bg = $('#bg'), imageInput = $('#imageInput'), useGradient = $('#useGradient'), uploadLabel = $('#uploadLabel');
+const confettiCanvas = $('#confetti'), endAction = $('#endAction'), previewZero = $('#previewZero');
+
+let targetTime = null;
+let timerInterval = null;
+let paused = false;
+let slides = []; // array of dataURLs
+let slideIndex = 0;
+let slideTimer = null;
+
+/* Initialize: default target = next year same day (optional) */
+function pad(n){return String(n).padStart(2,'0')}
+function formatDate(dt){
+  return dt.toLocaleString();
+}
+function updateDisplay(diffMs){
+  if(diffMs <= 0) {
+    daysEl.textContent = '00';
+    hoursEl.textContent = '00';
+    minutesEl.textContent = '00';
+    secondsEl.textContent = '00';
+    return;
+  }
+  const s = Math.floor(diffMs/1000);
+  const days = Math.floor(s / 86400);
+  const hours = Math.floor((s % 86400) / 3600);
+  const minutes = Math.floor((s % 3600) / 60);
+  const seconds = s % 60;
+  daysEl.textContent = pad(days);
+  hoursEl.textContent = pad(hours);
+  minutesEl.textContent = pad(minutes);
+  secondsEl.textContent = pad(seconds);
+}
+
+/* Save / load to localStorage for convenience */
+function saveState(){
+  const state = {
+    label: labelInput.value || '',
+    target: targetTime ? targetTime.toISOString() : null,
+    slides: slides.slice(0,8)
+  };
+  localStorage.setItem('countdownState', JSON.stringify(state));
+}
+function loadState(){
+  const raw = localStorage.getItem('countdownState');
+  if(!raw) return;
+  try {
+    const s = JSON.parse(raw);
+    labelInput.value = s.label || labelInput.value;
+    if(s.target) {
+      targetTime = new Date(s.target);
+      dateInput.value = toDatetimeLocal(targetTime);
+      targetDateText.textContent = 'Target: ' + formatDate(targetTime);
     }
-
-    // 🎉 Confetti effect
-    function startConfetti() {
-      const canvas = document.getElementById("confetti");
-      const ctx = canvas.getContext("2d");
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-
-      const confettis = Array.from({ length: 150 }).map(() => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height - canvas.height,
-        r: Math.random() * 6 + 4,
-        d: Math.random() * 10 + 10,
-        color: `hsl(${Math.random() * 360}, 100%, 70%)`,
-        tilt: Math.random() * 10 - 10,
-      }));
-
-      function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        confettis.forEach((c) => {
-          ctx.beginPath();
-          ctx.lineWidth = c.r;
-          ctx.strokeStyle = c.color;
-          ctx.moveTo(c.x + c.tilt + c.r / 2, c.y);
-          ctx.lineTo(c.x + c.tilt, c.y + c.tilt + c.r / 2);
-          ctx.stroke();
-        });
-        update();
-      }
-
-      function update() {
-        confettis.forEach((c) => {
-          c.y += Math.cos(c.d) + 1 + c.r / 2;
-          c.x += Math.sin(c.d);
-          if (c.y > canvas.height) {
-            c.y = -10;
-            c.x = Math.random() * canvas.width;
-          }
-        });
-      }
-
-      (function animate() {
-        draw();
-        requestAnimationFrame(animate);
-      })();
+    if(Array.isArray(s.slides) && s.slides.length) {
+      slides = s.slides;
+      startSlides();
     }
+  } catch(e){}
+}
 
-    // 🚀 Start countdown
-    startCountdown(config.countdownDate);
-  </script>
+function toDatetimeLocal(date) {
+  const pad2 = (n)=>String(n).padStart(2,'0');
+  const yyyy = date.getFullYear();
+  const mm = pad2(date.getMonth()+1);
+  const dd = pad2(date.getDate());
+  const hh = pad2(date.getHours());
+  const min = pad2(date.getMinutes());
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+}
+
+/* Timer loop */
+function startTimer(){
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    if(paused || !targetTime) return;
+    const now = new Date();
+    const diff = targetTime - now;
+    if(diff <= 0){
+      updateDisplay(0);
+      clearInterval(timerInterval);
+      timerInterval = null;
+      reachedZero();
+    } else {
+      updateDisplay(diff);
+    }
+  }, 250);
+}
+
+function reachedZero(){
+  const action = endAction.value;
+  if(action === 'confetti') {
+    runConfettiBurst();
+    showEndMessage();
+  } else if(action === 'alert'){
+    alert(eventLabel.textContent + ' — it\'s time!');
+  }
+  // else none
+}
+
+function showEndMessage(){
+  const old = eventLabel.textContent;
+  eventLabel.textContent = '🎉 ' + (labelInput.value || 'Celebrate!');
+  setTimeout(()=> { eventLabel.textContent = old; }, 8000);
+}
+
+/* Buttons */
+setBtn.addEventListener('click', ()=>{
+  const txt = labelInput.value.trim();
+  eventLabel.textContent = txt || 'Your Event';
+  const val = dateInput.value;
+  if(!val){ alert('Please pick a date & time.'); return; }
+  targetTime = new Date(val);
+  if(isNaN(targetTime)) { alert('Invalid date/time.'); return; }
+  targetDateText.textContent = 'Target: ' + formatDate(targetTime);
+  saveState();
+  paused = false;
+  pauseBtn.setAttribute('aria-pressed','false'); pauseBtn.textContent = 'Pause';
+  startTimer();
+});
+
+resetBtn.addEventListener('click', ()=>{
+  if(confirm('Reset countdown and clear images?')) {
+    targetTime = null;
+    dateInput.value = '';
+    eventLabel.textContent = 'Our Special Day';
+    targetDateText.textContent = 'No date set';
+    slides = [];
+    clearSlides();
+    saveState();
+    if(timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    updateDisplay(0);
+  }
+});
+
+pauseBtn.addEventListener('click', ()=>{
+  paused = !paused;
+  pauseBtn.setAttribute('aria-pressed', String(paused));
+  pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+});
+
+/* Background slides */
+useGradient.addEventListener('click', ()=>{
+  slides = [];
+  clearSlides();
+  saveState();
+});
+
+imageInput.addEventListener('change', async (e)=>{
+  const files = Array.from(e.target.files).slice(0,8);
+  if(!files.length) return;
+  slides = [];
+  for(const f of files){
+    try {
+      const data = await readFileAsDataURL(f);
+      slides.push(data);
+    } catch(err){}
+  }
+  startSlides();
+  saveState();
+});
+
+function readFileAsDataURL(file){
+  return new Promise((res, rej)=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.onerror = ()=>rej(r.error);
+    r.readAsDataURL(file);
+  });
+}
+
+function startSlides(){
+  clearSlides();
+  if(!slides.length) return;
+  // populate bg with slide elements
+  bg.innerHTML = '';
+  slides.forEach((src, i)=>{
+    const d = document.createElement('div');
+    d.className = 'slide';
+    if(i===0) d.classList.add('visible');
+    d.style.backgroundImage = `linear-gradient(135deg, rgba(0,0,0,0.15), rgba(0,0,0,0.2)), url("${src}")`;
+    bg.appendChild(d);
+  });
+  slideIndex = 0;
+  slideTimer = setInterval(()=>{
+    const nodes = Array.from(bg.querySelectorAll('.slide'));
+    if(nodes.length<=1) return;
+    nodes.forEach(n=>n.classList.remove('visible'));
+    slideIndex = (slideIndex+1) % nodes.length;
+    nodes[slideIndex].classList.add('visible');
+  }, 3500);
+}
+
+function clearSlides(){
+  if(slideTimer) { clearInterval(slideTimer); slideTimer = null; }
+  bg.innerHTML = '';
+  const defaultDiv = document.createElement('div');
+  defaultDiv.className = 'slide visible';
+  defaultDiv.style.backgroundImage = `linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)), url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%22700%22><rect fill=%22%230b2a2f%22 width=%22100%25%22 height=%22100%25%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2230%22 fill=%22%23ffffff%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>Gradient background</text></svg>')`;
+  bg.appendChild(defaultDiv);
+}
+
+/* local load */
+loadState();
+if(targetTime) startTimer();
+
+/* confetti engine (simple particles) */
+const cx = confettiCanvas;
+const ctx = cx.getContext('2d');
+let confettiPieces = [];
+function resizeCanvas(){
+  cx.width = innerWidth;
+  cx.height = innerHeight;
+}
+resizeCanvas();
+addEventListener('resize', resizeCanvas);
+
+function makePiece(x,y){
+  const s = Math.random()*8 + 6;
+  return {
+    x, y,
+    vx: (Math.random()-0.5)*6,
+    vy: Math.random()*-6 - 2,
+    rot: Math.random()*360,
+    vro: (Math.random()-0.5)*14,
+    w: s, h: s*0.6,
+    color: `hsl(${Math.floor(Math.random()*360)}, 80%, 60%)`,
+    life: 0,
+    ttl: 160 + Math.floor(Math.random()*80)
+  };
+}
+
+function runConfettiBurst(count = 120){
+  confettiPieces = confettiPieces.concat(Array.from({length:count}, ()=>makePiece(innerWidth/2 + (Math.random()-0.5)*400, innerHeight/3 + (Math.random()-0.5)*100)));
+  if(!confettiLoopActive) startConfettiLoop();
+}
+
+/* confetti loop */
+let confettiLoopActive = false;
+function startConfettiLoop(){
+  confettiLoopActive = true;
+  (function loop(){
+    ctx.clearRect(0,0, cx.width, cx.height);
+    for(let i = confettiPieces.length-1; i>=0; i--){
+      const p = confettiPieces[i];
+      p.vy += 0.18; // gravity
+      p.vx *= 0.995;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vro;
+      p.life++;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI/180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+      // remove if off screen long enough
+      if(p.life > p.ttl || p.y > cx.height + 80) confettiPieces.splice(i,1);
+    }
+    if(confettiPieces.length) requestAnimationFrame(loop);
+    else { confettiLoopActive = false; ctx.clearRect(0,0,cx.width,cx.height); }
+  })();
+}
+
+/* preview confetti */
+previewZero.addEventListener('click', ()=> runConfettiBurst(120));
+
+/* keyboard: space toggles pause */
+window.addEventListener('keydown', (e)=>{
+  if(e.code === 'Space') {
+    e.preventDefault();
+    pauseBtn.click();
+  }
+});
+
+/* attempt to auto-set date if user types natural-ish date (basic) */
+dateInput.addEventListener('input', ()=>{
+  // nothing fancy - browser shows good picker
+});
+
+/* save when label changes */
+labelInput.addEventListener('change', saveState);
+
+/* autosave slides on unload */
+window.addEventListener('beforeunload', saveState);
+</script>
 </body>
 </html>
